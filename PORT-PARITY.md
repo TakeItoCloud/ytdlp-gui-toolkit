@@ -5,10 +5,10 @@ Tracks GUI coverage of yt-dlp CLI options. Status: `Not wired` / `Wired` / `Wire
 ## Core / Format
 | Flag | Status | Phase |
 |---|---|---|
-| -f / --format | Not wired | 1 |
-| -F / --list-formats | Not wired | 1 |
-| -o / --output | Not wired | 1 |
-| -P / --paths | Not wired | 1 |
+| -f / --format | Wired | 1 |
+| -F / --list-formats | Wired | 1 |
+| -o / --output | Wired | 1 |
+| -P / --paths | Wired | 1 |
 
 ## Audio
 | Flag | Status | Phase |
@@ -45,4 +45,4 @@ Tracks GUI coverage of yt-dlp CLI options. Status: `Not wired` / `Wired` / `Wire
 | Flag | Status | Phase |
 |---|---|---|
 | -U / --update | Not wired | 6 |
-| Progress bar parsing (from yt-dlp's `[download] NN.N%` stdout lines, into a real progress widget — not just raw log scroll) | Not wired | 1 |
+| Progress bar parsing (from yt-dlp's `[download] NN.N%` stdout lines, into a real progress widget — not just raw log scroll) | Wired | 1 |

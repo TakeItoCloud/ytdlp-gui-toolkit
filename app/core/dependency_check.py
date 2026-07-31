@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import importlib.util
 import shutil
+import sys
 from dataclasses import dataclass
 
 from app.config import FFMPEG_CLI, YTDLP_CLI
@@ -56,6 +57,26 @@ def check_dependencies() -> list[DependencyStatus]:
 def missing_dependencies() -> list[DependencyStatus]:
     """Return only the dependencies that were not found."""
     return [dep for dep in check_dependencies() if not dep.found]
+
+
+def resolve_ytdlp_command() -> list[str] | None:
+    """Return the base command tokens used to invoke yt-dlp, or None if absent.
+
+    Reuses the same detection order as :func:`_check_ytdlp` so callers (e.g. the
+    subprocess runner) don't duplicate the logic:
+
+    * If the ``yt-dlp`` executable is on PATH, use it directly.
+    * Otherwise, if the ``yt_dlp`` module is importable, invoke it via the
+      current interpreter: ``python -u -m yt_dlp`` (``-u`` keeps stdout
+      unbuffered so progress streams line by line).
+    * If neither is available, return ``None``.
+    """
+    on_path = shutil.which(YTDLP_CLI)
+    if on_path:
+        return [on_path]
+    if importlib.util.find_spec("yt_dlp") is not None:
+        return [sys.executable, "-u", "-m", "yt_dlp"]
+    return None
 
 
 # --- Install hints shown to the user when a dependency is missing -----------

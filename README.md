@@ -49,3 +49,25 @@ Features are built up phase by phase (see `PORT-PLAN.md`).
   as a Python module or found on PATH) and `ffmpeg` (on PATH) are present. Results are
   written to the log console, and a dialog with install instructions appears if
   anything is missing — no silent failures.
+
+### Phase 1 — Core tab & real downloads
+The app can now actually download videos. The **Core** tab drives a real `yt-dlp`
+subprocess:
+- **URL** field for a single video or playlist URL (Run stays disabled until a URL is
+  entered).
+- **Format** dropdown mapping friendly labels to real `-f` values — *Best
+  (video+audio, merged)*, *Best up to 1080p*, *Best up to 720p*, or a *Custom format
+  string...* option that reveals a free-text `-f` entry. A **List available formats**
+  button runs `yt-dlp -F <url>` and shows the table in the raw-log panel.
+- **Output template** dropdown for common `-o` patterns (`%(title)s.%(ext)s`,
+  `%(uploader)s/%(title)s.%(ext)s`, `%(upload_date)s - %(title)s.%(ext)s`) plus a
+  custom option.
+- **Download folder** entry with a **Browse...** picker, defaulting to your Downloads
+  folder.
+- **Run / Stop**: Run launches yt-dlp in a background thread; Stop terminates it
+  cleanly (with a force-kill fallback).
+- **Progress bar + status**: yt-dlp's `[download] NN.N%` output is parsed into a real
+  determinate progress bar, with a status label that shows the live percentage and
+  switches to non-progress steps (e.g. `[Merger] Merging formats...`) as they happen.
+- **Collapsible raw log**: the full yt-dlp output is available behind a *Show raw log*
+  toggle (collapsed by default) for debugging.

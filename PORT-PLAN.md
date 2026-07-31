@@ -6,7 +6,7 @@
 ## Phases
 
 - [x] Phase 0 — Repo scaffold, plan files, dependency check, main window shell
-- [ ] Phase 1 — Core tab: URL input, format selection, output template, download path,
+- [x] Phase 1 — Core tab: URL input, format selection, output template, download path,
                 real subprocess runner, parsed progress bar (from yt-dlp's stdout, not
                 just raw scrolling text) with a collapsible raw-log panel underneath
 - [ ] Phase 2 — Audio tab: extract-audio, audio format, audio quality
