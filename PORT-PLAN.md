@@ -9,7 +9,7 @@
 - [x] Phase 1 — Core tab: URL input, format selection, output template, download path,
                 real subprocess runner, parsed progress bar (from yt-dlp's stdout, not
                 just raw scrolling text) with a collapsible raw-log panel underneath
-- [ ] Phase 2 — Audio tab: extract-audio, audio format, audio quality
+- [x] Phase 2 — Audio tab: extract-audio, audio format, audio quality
 - [ ] Phase 3 — Playlist tab: item ranges, playlist toggle, download archive
 - [ ] Phase 4 — Subtitles tab: write subs/auto-subs, sub languages, embed subs
 - [ ] Phase 5 — Advanced tab: rate limit, sleep interval, cookies-from-browser

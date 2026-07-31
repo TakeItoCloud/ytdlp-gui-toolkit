@@ -44,6 +44,12 @@ class CoreTab:
         self._on_state_change = on_state_change
         self._on_list_formats = on_list_formats
 
+        # Run-lock (False while a download runs) and format-active (False when the
+        # Audio tab's extract-audio is on) together decide the format controls'
+        # enabled state.
+        self._unlocked = True
+        self._format_active = True
+
         master.grid_columnconfigure(1, weight=1)
         row = 0
 
@@ -79,6 +85,17 @@ class CoreTab:
             master, text="List available formats", command=self._on_list_formats
         )
         self.list_formats_button.grid(row=row, column=2, padx=(0, 12), pady=6, sticky="e")
+        row += 1
+
+        # Inline note shown when the Audio tab's extract-audio suppresses -f.
+        self.format_note = ctk.CTkLabel(
+            master,
+            text="Video format is set by the Audio tab (extract-audio is on).",
+            text_color="gray",
+            anchor="w",
+            font=ctk.CTkFont(size=11),
+        )
+        self._format_note_row = row
         row += 1
 
         # Custom format entry (hidden unless "Custom format string..." chosen).
@@ -179,19 +196,51 @@ class CoreTab:
         return bool(self.get_url())
 
     def set_controls_enabled(self, enabled: bool) -> None:
-        """Enable/disable inputs while a run is in progress."""
-        state = "normal" if enabled else "disabled"
+        """Lock/unlock all inputs while a run is in progress."""
+        self._unlocked = enabled
+        self._refresh_states()
+
+    def set_format_active(self, active: bool) -> None:
+        """Grey out (or restore) the video-format controls.
+
+        Called by the window when the Audio tab's extract-audio toggle flips.
+        When inactive, the format controls are disabled, an inline note explains
+        why, and :meth:`build_download_args` omits ``-f`` so no conflicting video
+        format selector is sent alongside audio extraction.
+        """
+        self._format_active = active
+        if active:
+            self.format_note.grid_remove()
+        else:
+            self.format_note.grid(
+                row=self._format_note_row,
+                column=1,
+                columnspan=2,
+                padx=(0, 12),
+                pady=(0, 4),
+                sticky="w",
+            )
+        self._refresh_states()
+
+    def _refresh_states(self) -> None:
+        """Apply enabled/disabled state to every widget from the tracked flags."""
+        base = "normal" if self._unlocked else "disabled"
         for widget in (
             self.url_entry,
-            self.format_menu,
             self.output_menu,
             self.path_entry,
             self.browse_button,
-            self.list_formats_button,
-            self.custom_format_entry,
             self.custom_output_entry,
         ):
-            widget.configure(state=state)
+            widget.configure(state=base)
+
+        fmt_state = "normal" if (self._unlocked and self._format_active) else "disabled"
+        for widget in (
+            self.format_menu,
+            self.list_formats_button,
+            self.custom_format_entry,
+        ):
+            widget.configure(state=fmt_state)
 
     def _selected_format(self) -> str:
         """The resolved -f value from either the preset or the custom entry."""
@@ -211,8 +260,10 @@ class CoreTab:
         """Translate the Core tab inputs into yt-dlp flags (URL not included)."""
         args: list[str] = []
 
+        # Omit -f entirely when the Audio tab suppressed video format selection
+        # (extract-audio on) so we don't send a conflicting video selector.
         fmt = self._selected_format()
-        if fmt:
+        if fmt and self._format_active:
             args += ["-f", fmt]
 
         template = self._selected_output()

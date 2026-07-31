@@ -22,6 +22,7 @@ from app.core.dependency_check import (
     missing_dependencies,
 )
 from app.core.runner import CommandRunner
+from app.ui.tabs.audio_tab import AudioTab
 from app.ui.tabs.core_tab import CoreTab
 
 _STATUS_MAX = 90  # truncate long status lines so the label doesn't blow out
@@ -68,13 +69,21 @@ class MainWindow(ctk.CTk):
         for name in config.TAB_NAMES:
             self.tabview.add(name)
 
-        # Core tab is functional this phase; the rest stay empty until later.
+        # Core and Audio tabs are functional; the rest stay empty until later.
         self.core_tab = CoreTab(
             self.tabview.tab("Core"),
             on_state_change=self._update_run_state,
             on_list_formats=self._on_list_formats,
         )
+        self.audio_tab = AudioTab(
+            self.tabview.tab("Audio"),
+            on_extract_change=self._on_audio_extract_change,
+        )
         self.tabview.set("Core")
+
+    def _on_audio_extract_change(self) -> None:
+        """Grey/restore the Core tab's video-format controls to match audio mode."""
+        self.core_tab.set_format_active(not self.audio_tab.is_extract_on())
 
     def _build_progress_row(self) -> None:
         frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -163,7 +172,11 @@ class MainWindow(ctk.CTk):
         if not url:
             self._set_status("Enter a URL first.")
             return
-        args = [*self.core_tab.build_download_args(), url]
+        args = [
+            *self.core_tab.build_download_args(),
+            *self.audio_tab.get_args(),
+            url,
+        ]
         self._launch(args, mode="download", running_status="Starting download…")
 
     def _on_list_formats(self) -> None:
@@ -189,6 +202,7 @@ class MainWindow(ctk.CTk):
 
         # Lock the UI for the duration of the run.
         self.core_tab.set_controls_enabled(False)
+        self.audio_tab.set_controls_enabled(False)
         self.run_button.configure(state="disabled")
         self.stop_button.configure(state="normal")
 
@@ -232,6 +246,7 @@ class MainWindow(ctk.CTk):
 
     def _on_done(self, returncode: int) -> None:
         self.core_tab.set_controls_enabled(True)
+        self.audio_tab.set_controls_enabled(True)
 
         if self._stopping:
             self._set_status("Stopped.")

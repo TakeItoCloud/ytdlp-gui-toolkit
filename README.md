@@ -71,3 +71,16 @@ subprocess:
   switches to non-progress steps (e.g. `[Merger] Merging formats...`) as they happen.
 - **Collapsible raw log**: the full yt-dlp output is available behind a *Show raw log*
   toggle (collapsed by default) for debugging.
+
+### Phase 2 — Audio tab (extract audio)
+The **Audio** tab turns a download into an audio-only extraction:
+- **Extract audio only** toggle (`-x`). While it's off, the rest of the Audio tab is
+  disabled so its settings can't silently do nothing.
+- **Audio format** (`--audio-format`): `best`, `mp3`, `m4a`, `flac`, `wav`, `opus`,
+  `vorbis`, `aac`, or `alac`.
+- **Audio quality** (`--audio-quality`): presets *Best (0)*, *Good (5)*, *Smaller file
+  (9)*, or a *Custom bitrate...* entry for values like `128K` / `192K` / `320K`.
+- Turning on extract-audio greys out the Core tab's video **Format** controls (with an
+  inline note) and drops `-f` from the command, letting yt-dlp choose the best audio
+  source rather than sending a conflicting video selector. The output template and
+  download folder from the Core tab still apply.

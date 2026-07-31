@@ -13,9 +13,9 @@ Tracks GUI coverage of yt-dlp CLI options. Status: `Not wired` / `Wired` / `Wire
 ## Audio
 | Flag | Status | Phase |
 |---|---|---|
-| -x / --extract-audio | Not wired | 2 |
-| --audio-format | Not wired | 2 |
-| --audio-quality | Not wired | 2 |
+| -x / --extract-audio | Wired | 2 |
+| --audio-format | Wired | 2 |
+| --audio-quality | Wired | 2 |
 
 ## Playlist
 | Flag | Status | Phase |

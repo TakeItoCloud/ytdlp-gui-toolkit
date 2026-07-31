@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### Phase 2 — 2026-07-31
+- Audio tab (`app/ui/tabs/audio_tab.py`): "Extract audio only" toggle (`-x`), audio
+  format dropdown (`--audio-format`: best/mp3/m4a/flac/wav/opus/vorbis/aac/alac), and
+  audio quality (`--audio-quality`) via presets (Best 0 / Good 5 / Smaller 9) plus a
+  "Custom bitrate..." entry for values like `128K`. When extract-audio is off, the
+  format/quality controls are visually disabled and contribute nothing to the command.
+- Command building extended: each tab exposes its own args method
+  (`AudioTab.get_args()`), and the Run handler concatenates
+  `core.build_download_args() + audio.get_args() + [url]`.
+- Core/Audio interaction: turning on extract-audio greys out the Core tab's video
+  format controls (with an inline note) and suppresses `-f` from the built command, so
+  yt-dlp picks the best audio source itself instead of receiving a conflicting video
+  selector. Toggling off restores them.
+
 ### Phase 1 — 2026-07-31
 - Real `CommandRunner`: launches yt-dlp in a background thread, streams stdout line
   by line (uses `--newline` so progress updates arrive as discrete lines), parses

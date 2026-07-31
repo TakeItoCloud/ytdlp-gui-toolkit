@@ -49,3 +49,30 @@ OUTPUT_PRESETS: dict[str, str] = {
     "%(upload_date)s - %(title)s.%(ext)s": "%(upload_date)s - %(title)s.%(ext)s",
     CUSTOM_OUTPUT_LABEL: "",
 }
+
+# --- Audio tab: --audio-format choices --------------------------------------
+# Passed verbatim to yt-dlp's --audio-format. "best" keeps the best available
+# audio without re-encoding (yt-dlp's own default).
+AUDIO_FORMATS: tuple[str, ...] = (
+    "best",
+    "mp3",
+    "m4a",
+    "flac",
+    "wav",
+    "opus",
+    "vorbis",
+    "aac",
+    "alac",
+)
+
+# --- Audio tab: --audio-quality presets -------------------------------------
+# yt-dlp's --audio-quality takes a 0 (best) - 10 (worst) VBR scale OR a specific
+# bitrate like "128K". Presets map to VBR numbers; the custom option reveals a
+# free-text entry for a bitrate.
+CUSTOM_BITRATE_LABEL = "Custom bitrate..."
+AUDIO_QUALITY_PRESETS: dict[str, str] = {
+    "Best (0)": "0",
+    "Good (5, default)": "5",
+    "Smaller file (9)": "9",
+    CUSTOM_BITRATE_LABEL: "",
+}
