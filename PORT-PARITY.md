@@ -35,11 +35,11 @@ Tracks GUI coverage of yt-dlp CLI options. Status: `Not wired` / `Wired` / `Wire
 ## Advanced
 | Flag | Status | Phase |
 |---|---|---|
-| -r / --limit-rate | Not wired | 5 |
-| --sleep-interval | Not wired | 5 |
-| --cookies-from-browser | Not wired | 5 |
-| --sponsorblock-mark | Not wired | 5 |
-| --sponsorblock-remove | Not wired | 5 |
+| -r / --limit-rate | Wired | 5 |
+| --sleep-interval | Wired | 5 |
+| --cookies-from-browser | Wired | 5 |
+| --sponsorblock-mark | Wired | 5 |
+| --sponsorblock-remove | Wired | 5 |
 
 ## Meta
 | Flag | Status | Phase |

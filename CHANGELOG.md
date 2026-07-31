@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Phase 5 — 2026-07-31
+- Advanced tab (`app/ui/tabs/advanced_tab.py`, hosted in a scrollable frame): rate limit
+  (`-r`) toggle + value, sleep interval (`--sleep-interval`) toggle + numeric value with
+  a loose sanity check, cookies-from-browser (`--cookies-from-browser`) toggle + browser
+  dropdown, and SponsorBlock (`--sponsorblock-mark` / `--sponsorblock-remove`) as a
+  per-category Mark/Remove checkbox grid whose checked categories are comma-joined into
+  each flag (empty column → flag omitted).
+- Cookies-from-browser carries an always-visible warning label (not a one-time dialog)
+  stating that the flag reads the browser's saved session/credential store and should
+  only be used for content the user is logged into.
+- Command building extended with `AdvancedTab.get_args()`, concatenated after the other
+  tabs; the tab is included in the run-lock.
+
 ### Phase 4 — 2026-07-31
 - Subtitles tab (`app/ui/tabs/subtitles_tab.py`): "Write subtitles" (`--write-subs`)
   and "Write auto-generated subtitles" (`--write-auto-subs`) toggles (independent, both

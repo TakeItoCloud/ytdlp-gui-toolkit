@@ -12,7 +12,7 @@
 - [x] Phase 2 — Audio tab: extract-audio, audio format, audio quality
 - [x] Phase 3 — Playlist tab: item ranges, playlist toggle, download archive
 - [x] Phase 4 — Subtitles tab: write subs/auto-subs, sub languages, embed subs
-- [ ] Phase 5 — Advanced tab: rate limit, sleep interval, cookies-from-browser
+- [x] Phase 5 — Advanced tab: rate limit, sleep interval, cookies-from-browser
                 (with explicit UI warning it reads the browser's credential store),
                 SponsorBlock mark/remove
 - [ ] Phase 6 — Command preview panel, presets (save/load JSON), copy-command button,

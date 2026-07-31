@@ -91,3 +91,41 @@ PLAYLIST_HANDLING: dict[str, str] = {
 # Default filename suggested (in the Core tab's download folder) when the
 # download-archive toggle is switched on with an empty path.
 DEFAULT_ARCHIVE_FILENAME = "archive.txt"
+
+# --- Advanced tab: cookies-from-browser -------------------------------------
+# Browsers yt-dlp can read cookies from (--cookies-from-browser).
+COOKIE_BROWSERS: tuple[str, ...] = (
+    "chrome",
+    "chromium",
+    "edge",
+    "firefox",
+    "brave",
+    "opera",
+    "safari",
+    "vivaldi",
+    "whale",
+)
+
+# Shown as a visible label next to the cookies control (not a one-time dialog):
+# this flag reads the browser's saved credential store, so the warning stays on
+# screen whenever the tab is open.
+COOKIES_WARNING = (
+    "Reads cookies directly from your browser's saved session / credential store. "
+    "Only use this for content you're logged into and want yt-dlp to access on "
+    "your behalf."
+)
+
+# --- Advanced tab: SponsorBlock ---------------------------------------------
+# Standard SponsorBlock categories. Each can be marked (chaptered) and/or removed
+# (cut) independently; the comma-joined lists feed --sponsorblock-mark /
+# --sponsorblock-remove.
+SPONSORBLOCK_CATEGORIES: tuple[str, ...] = (
+    "sponsor",
+    "intro",
+    "outro",
+    "selfpromo",
+    "preview",
+    "filler",
+    "interaction",
+    "music_offtopic",
+)

@@ -107,3 +107,19 @@ The **Subtitles** tab controls subtitle downloading and embedding:
 - **Embed subtitles into video** (`--embed-subs`): muxes subtitles into the video file
   (mp4/webm/mkv). It greys out with a note when the Audio tab's *Extract audio only* is
   on, since there is no video to embed into.
+
+### Phase 5 — Advanced tab
+The **Advanced** tab exposes throttling, authentication, and SponsorBlock options:
+- **Rate limit** (`-r`): cap download speed, e.g. `2M`, `50K`, `4.2M`.
+- **Sleep interval** (`--sleep-interval`): seconds to wait between downloads.
+- **Cookies from browser** (`--cookies-from-browser`): read your login cookies from
+  `chrome`, `chromium`, `edge`, `firefox`, `brave`, `opera`, `safari`, `vivaldi`, or
+  `whale`. **⚠️ This reads cookies directly from your browser's saved
+  session/credential store** — only use it for content you're logged into and want
+  yt-dlp to access on your behalf. The tab shows this warning prominently whenever it's
+  open (not just once in a dialog).
+- **SponsorBlock** (`--sponsorblock-mark` / `--sponsorblock-remove`): enable
+  SponsorBlock, then per category (`sponsor`, `intro`, `outro`, `selfpromo`, `preview`,
+  `filler`, `interaction`, `music_offtopic`) choose *Mark* (create chapters) and/or
+  *Remove* (cut the segment). If a category is set to both, yt-dlp's own precedence
+  (remove wins) applies.

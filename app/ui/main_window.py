@@ -22,6 +22,7 @@ from app.core.dependency_check import (
     missing_dependencies,
 )
 from app.core.runner import CommandRunner
+from app.ui.tabs.advanced_tab import AdvancedTab
 from app.ui.tabs.audio_tab import AudioTab
 from app.ui.tabs.core_tab import CoreTab
 from app.ui.tabs.playlist_tab import PlaylistTab
@@ -89,6 +90,7 @@ class MainWindow(ctk.CTk):
             self.tabview.tab("Subtitles"),
             is_extract_audio_on=self.audio_tab.is_extract_on,
         )
+        self.advanced_tab = AdvancedTab(self.tabview.tab("Advanced"))
         self.tabview.set("Core")
 
     def _on_audio_extract_change(self) -> None:
@@ -189,6 +191,7 @@ class MainWindow(ctk.CTk):
             *self.audio_tab.get_args(),
             *self.playlist_tab.get_args(),
             *self.subtitles_tab.get_args(),
+            *self.advanced_tab.get_args(),
             url,
         ]
         self._launch(args, mode="download", running_status="Starting download…")
@@ -219,6 +222,7 @@ class MainWindow(ctk.CTk):
         self.audio_tab.set_controls_enabled(False)
         self.playlist_tab.set_controls_enabled(False)
         self.subtitles_tab.set_controls_enabled(False)
+        self.advanced_tab.set_controls_enabled(False)
         self.run_button.configure(state="disabled")
         self.stop_button.configure(state="normal")
 
@@ -265,6 +269,7 @@ class MainWindow(ctk.CTk):
         self.audio_tab.set_controls_enabled(True)
         self.playlist_tab.set_controls_enabled(True)
         self.subtitles_tab.set_controls_enabled(True)
+        self.advanced_tab.set_controls_enabled(True)
 
         if self._stopping:
             self._set_status("Stopped.")
