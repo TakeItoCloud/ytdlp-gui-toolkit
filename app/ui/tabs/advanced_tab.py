@@ -253,6 +253,46 @@ class AdvancedTab:
         self._unlocked = enabled
         self._refresh_states()
 
+    # -- Preset state (UI values, distinct from get_args CLI flags) ---------
+    def get_state(self) -> dict:
+        """Serialize the tab's control values for a preset."""
+        return {
+            "rate_on": bool(self.rate_var.get()),
+            "rate_value": self.rate_value_var.get(),
+            "sleep_on": bool(self.sleep_var.get()),
+            "sleep_value": self.sleep_value_var.get(),
+            "cookies_on": bool(self.cookies_var.get()),
+            "browser": self.browser_menu.get(),
+            "sponsorblock_on": bool(self.sponsorblock_var.get()),
+            "mark": [c for c in config.SPONSORBLOCK_CATEGORIES if self.mark_vars[c].get()],
+            "remove": [
+                c for c in config.SPONSORBLOCK_CATEGORIES if self.remove_vars[c].get()
+            ],
+        }
+
+    def set_state(self, state: dict) -> None:
+        """Restore control values from a preset, falling back per missing key."""
+        self.rate_var.set(bool(state.get("rate_on", False)))
+        self.rate_value_var.set(state.get("rate_value", ""))
+        self.sleep_var.set(bool(state.get("sleep_on", False)))
+        self.sleep_value_var.set(state.get("sleep_value", ""))
+        self.cookies_var.set(bool(state.get("cookies_on", False)))
+
+        browser = state.get("browser", "")
+        self.browser_menu.set(
+            browser if browser in config.COOKIE_BROWSERS else config.COOKIE_BROWSERS[0]
+        )
+
+        self.sponsorblock_var.set(bool(state.get("sponsorblock_on", False)))
+        mark = set(state.get("mark", []) or [])
+        remove = set(state.get("remove", []) or [])
+        for cat in config.SPONSORBLOCK_CATEGORIES:
+            self.mark_vars[cat].set(cat in mark)
+            self.remove_vars[cat].set(cat in remove)
+
+        self._refresh_states()
+        self._validate_sleep()
+
     # -- Accessors ---------------------------------------------------------
     def _checked_categories(self, vars_by_cat: dict[str, ctk.BooleanVar]) -> str:
         """Comma-join the categories whose var is checked, in config order."""

@@ -208,6 +208,26 @@ class SubtitlesTab:
         self._unlocked = enabled
         self._refresh_states()
 
+    # -- Preset state (UI values, distinct from get_args CLI flags) ---------
+    def get_state(self) -> dict:
+        """Serialize the tab's control values for a preset."""
+        return {
+            "write_subs": bool(self.write_subs_var.get()),
+            "write_auto": bool(self.write_auto_var.get()),
+            "langs": self.langs_var.get(),
+            "embed": bool(self.embed_var.get()),
+        }
+
+    def set_state(self, state: dict) -> None:
+        """Restore control values from a preset, falling back per missing key."""
+        self.write_subs_var.set(bool(state.get("write_subs", False)))
+        self.write_auto_var.set(bool(state.get("write_auto", False)))
+        self.langs_var.set(state.get("langs", ""))
+        self.embed_var.set(bool(state.get("embed", False)))
+
+        self._refresh_states()
+        self._validate_langs()
+
     # -- Accessors ---------------------------------------------------------
     def get_args(self) -> list[str]:
         """The yt-dlp flags for the Subtitles tab."""

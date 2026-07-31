@@ -1,8 +1,8 @@
 """Main application window.
 
-Hosts the tabbed sections (only Core is functional this phase), a parsed
-progress bar with a status label, Run/Stop controls, and a collapsible raw-log
-panel for full yt-dlp output.
+Hosts the five tabbed sections, a live command-preview panel with a copy button,
+a parsed progress bar with a status label, Run/Stop controls, preset save/load,
+a yt-dlp self-update button, and a collapsible raw-log panel for full output.
 
 Threading note: the subprocess runner invokes its callbacks from a worker
 thread. Those callbacks only push events onto a thread-safe queue; all widget
@@ -11,7 +11,11 @@ updates happen on the main thread via a periodic ``after()`` poll of that queue.
 
 from __future__ import annotations
 
+import json
 import queue
+import shlex
+from pathlib import Path
+from tkinter import filedialog
 
 import customtkinter as ctk
 
@@ -43,27 +47,32 @@ class MainWindow(ctk.CTk):
 
         self.runner = CommandRunner()
         self._events: queue.Queue[tuple] = queue.Queue()
-        self._mode: str = ""  # "download" or "list"
+        self._mode: str = ""  # "download", "list", or "update"
         self._stopping = False
         self._raw_log_visible = False
+        self._preview_last = ""
 
-        # Root grid: tabview grows; progress, controls, and log are fixed.
+        # Root grid: tabview grows; preview, progress, controls, and log fixed.
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)  # tabview
-        self.grid_rowconfigure(1, weight=0)  # progress row
-        self.grid_rowconfigure(2, weight=0)  # control bar
-        self.grid_rowconfigure(3, weight=0)  # raw log (collapsible)
+        self.grid_rowconfigure(1, weight=0)  # command preview
+        self.grid_rowconfigure(2, weight=0)  # progress row
+        self.grid_rowconfigure(3, weight=0)  # control bar
+        self.grid_rowconfigure(4, weight=0)  # raw log (collapsible)
 
         self._build_tabview()
+        self._build_preview_row()
         self._build_progress_row()
         self._build_control_bar()
         self._build_log_console()
 
         self._update_run_state()
 
-        # Poll the event queue on the main loop, and run the startup dep check.
+        # Poll the event queue and refresh the live preview on the main loop,
+        # and run the startup dependency check.
         self.after(100, self._drain_events)
         self.after(200, self._run_dependency_check)
+        self.after(300, self._refresh_preview)
 
     # -- Layout ------------------------------------------------------------
     def _build_tabview(self) -> None:
@@ -99,9 +108,28 @@ class MainWindow(ctk.CTk):
         self.core_tab.set_format_active(not extract_on)
         self.subtitles_tab.refresh_audio_dependency()
 
+    def _build_preview_row(self) -> None:
+        frame = ctk.CTkFrame(self)
+        frame.grid(row=1, column=0, padx=12, pady=(0, 6), sticky="ew")
+        frame.grid_columnconfigure(0, weight=1)
+
+        ctk.CTkLabel(frame, text="Command preview", anchor="w").grid(
+            row=0, column=0, padx=8, pady=(6, 0), sticky="w"
+        )
+
+        # Read-only, wraps so long commands stay fully visible.
+        self.preview_box = ctk.CTkTextbox(frame, height=54, wrap="word")
+        self.preview_box.grid(row=1, column=0, padx=(8, 6), pady=(2, 8), sticky="ew")
+        self.preview_box.configure(state="disabled")
+
+        self.copy_button = ctk.CTkButton(
+            frame, text="Copy", width=90, command=self._on_copy_command
+        )
+        self.copy_button.grid(row=1, column=1, padx=(0, 8), pady=(2, 8), sticky="n")
+
     def _build_progress_row(self) -> None:
         frame = ctk.CTkFrame(self, fg_color="transparent")
-        frame.grid(row=1, column=0, padx=12, pady=(0, 4), sticky="ew")
+        frame.grid(row=2, column=0, padx=12, pady=(0, 4), sticky="ew")
         frame.grid_columnconfigure(0, weight=1)
 
         self.progress_bar = ctk.CTkProgressBar(frame)
@@ -113,7 +141,7 @@ class MainWindow(ctk.CTk):
 
     def _build_control_bar(self) -> None:
         bar = ctk.CTkFrame(self, fg_color="transparent")
-        bar.grid(row=2, column=0, padx=12, pady=4, sticky="ew")
+        bar.grid(row=3, column=0, padx=12, pady=4, sticky="ew")
 
         self.run_button = ctk.CTkButton(
             bar, text="Run", width=100, command=self._on_run
@@ -125,10 +153,26 @@ class MainWindow(ctk.CTk):
         )
         self.stop_button.pack(side="left", padx=(8, 0))
 
+        # Right side (packed right-to-left): raw-log toggle, then utilities.
         self.toggle_log_button = ctk.CTkButton(
             bar, text="Show raw log ▸", width=130, command=self._toggle_raw_log
         )
         self.toggle_log_button.pack(side="right")
+
+        self.update_button = ctk.CTkButton(
+            bar, text="Update yt-dlp", width=120, command=self._on_update_ytdlp
+        )
+        self.update_button.pack(side="right", padx=(0, 8))
+
+        self.load_button = ctk.CTkButton(
+            bar, text="Load preset", width=110, command=self._on_load_preset
+        )
+        self.load_button.pack(side="right", padx=(0, 8))
+
+        self.save_button = ctk.CTkButton(
+            bar, text="Save preset", width=110, command=self._on_save_preset
+        )
+        self.save_button.pack(side="right", padx=(0, 8))
 
     def _build_log_console(self) -> None:
         self.log_frame = ctk.CTkFrame(self)
@@ -151,12 +195,12 @@ class MainWindow(ctk.CTk):
             return
         self._raw_log_visible = target
         if target:
-            self.grid_rowconfigure(3, weight=1)
-            self.log_frame.grid(row=3, column=0, padx=12, pady=(4, 12), sticky="nsew")
+            self.grid_rowconfigure(4, weight=1)
+            self.log_frame.grid(row=4, column=0, padx=12, pady=(4, 12), sticky="nsew")
             self.toggle_log_button.configure(text="Hide raw log ▾")
         else:
             self.log_frame.grid_remove()
-            self.grid_rowconfigure(3, weight=0)
+            self.grid_rowconfigure(4, weight=0)
             self.toggle_log_button.configure(text="Show raw log ▸")
 
     # -- Log helpers -------------------------------------------------------
@@ -180,20 +224,50 @@ class MainWindow(ctk.CTk):
         self.run_button.configure(state="normal" if can_run else "disabled")
         self.stop_button.configure(state="normal" if running else "disabled")
 
+    # -- Shared args / preview --------------------------------------------
+    def _collect_flag_args(self) -> list[str]:
+        """Concatenate every tab's yt-dlp flags (URL not included).
+
+        Single source of truth for both the Run handler and the live preview so
+        the previewed command is exactly what Run would execute.
+        """
+        return [
+            *self.core_tab.build_download_args(),
+            *self.audio_tab.get_args(),
+            *self.playlist_tab.get_args(),
+            *self.subtitles_tab.get_args(),
+            *self.advanced_tab.get_args(),
+        ]
+
+    def _preview_command_string(self) -> str:
+        """The full yt-dlp command as it would run (URL, or <URL> if empty)."""
+        url = self.core_tab.get_url() or "<URL>"
+        parts = ["yt-dlp", *self._collect_flag_args(), url]
+        return shlex.join(parts)
+
+    def _refresh_preview(self) -> None:
+        command = self._preview_command_string()
+        if command != self._preview_last:
+            self._preview_last = command
+            self.preview_box.configure(state="normal")
+            self.preview_box.delete("1.0", "end")
+            self.preview_box.insert("1.0", command)
+            self.preview_box.configure(state="disabled")
+        self.after(400, self._refresh_preview)
+
+    def _on_copy_command(self) -> None:
+        self.clipboard_clear()
+        self.clipboard_append(self._preview_command_string())
+        self.copy_button.configure(text="Copied!")
+        self.after(1000, lambda: self.copy_button.configure(text="Copy"))
+
     # -- Run / Stop / List formats ----------------------------------------
     def _on_run(self) -> None:
         url = self.core_tab.get_url()
         if not url:
             self._set_status("Enter a URL first.")
             return
-        args = [
-            *self.core_tab.build_download_args(),
-            *self.audio_tab.get_args(),
-            *self.playlist_tab.get_args(),
-            *self.subtitles_tab.get_args(),
-            *self.advanced_tab.get_args(),
-            url,
-        ]
+        args = [*self._collect_flag_args(), url]
         self._launch(args, mode="download", running_status="Starting download…")
 
     def _on_list_formats(self) -> None:
@@ -225,6 +299,7 @@ class MainWindow(ctk.CTk):
         self.advanced_tab.set_controls_enabled(False)
         self.run_button.configure(state="disabled")
         self.stop_button.configure(state="normal")
+        self._set_utility_enabled(False)
 
         self.runner.run(
             args,
@@ -237,6 +312,85 @@ class MainWindow(ctk.CTk):
         self._stopping = True
         self._set_status("Stopping…")
         self.runner.stop()
+
+    # -- yt-dlp self-update ------------------------------------------------
+    def _on_update_ytdlp(self) -> None:
+        """Run ``yt-dlp -U`` via the shared runner; no URL required."""
+        if self.runner.is_running():
+            self._set_status("A run is already in progress.")
+            return
+        self._toggle_raw_log(show=True)
+        self._launch(["-U"], mode="update", running_status="Updating yt-dlp…")
+
+    # -- Presets (full UI state, save/load JSON) --------------------------
+    def _presets_dir(self) -> Path:
+        """The app's presets/ folder (created on first use)."""
+        directory = Path(__file__).resolve().parents[2] / "presets"
+        directory.mkdir(parents=True, exist_ok=True)
+        return directory
+
+    def _collect_state(self) -> dict:
+        """Serialize every tab's UI values into a preset dict."""
+        return {
+            "version": 1,
+            "core": self.core_tab.get_state(),
+            "audio": self.audio_tab.get_state(),
+            "playlist": self.playlist_tab.get_state(),
+            "subtitles": self.subtitles_tab.get_state(),
+            "advanced": self.advanced_tab.get_state(),
+        }
+
+    def _apply_state(self, state: dict) -> None:
+        """Restore every tab from a preset dict, then resync cross-tab deps."""
+        self.core_tab.set_state(state.get("core", {}))
+        self.audio_tab.set_state(state.get("audio", {}))
+        self.playlist_tab.set_state(state.get("playlist", {}))
+        self.subtitles_tab.set_state(state.get("subtitles", {}))
+        self.advanced_tab.set_state(state.get("advanced", {}))
+        # One resync so audio-dependent controls (Core format, embed-subs) match.
+        self._on_audio_extract_change()
+        self._update_run_state()
+
+    def _on_save_preset(self) -> None:
+        path = filedialog.asksaveasfilename(
+            title="Save preset",
+            initialdir=str(self._presets_dir()),
+            defaultextension=".json",
+            filetypes=[("JSON presets", "*.json"), ("All files", "*.*")],
+        )
+        if not path:
+            return
+        try:
+            with open(path, "w", encoding="utf-8") as handle:
+                json.dump(self._collect_state(), handle, indent=2)
+        except OSError as exc:
+            self._set_status(f"Could not save preset: {exc}")
+            self.log(f"[error] save preset: {exc}")
+            return
+        self._set_status(f"Preset saved: {Path(path).name}")
+
+    def _on_load_preset(self) -> None:
+        path = filedialog.askopenfilename(
+            title="Load preset",
+            initialdir=str(self._presets_dir()),
+            filetypes=[("JSON presets", "*.json"), ("All files", "*.*")],
+        )
+        if not path:
+            return
+        try:
+            with open(path, encoding="utf-8") as handle:
+                state = json.load(handle)
+        except (OSError, json.JSONDecodeError) as exc:
+            self._set_status(f"Could not load preset: {exc}")
+            self.log(f"[error] load preset: {exc}")
+            return
+        if not isinstance(state, dict):
+            self._set_status("Preset file is not a valid preset.")
+            self.log("[error] load preset: top-level JSON is not an object.")
+            return
+        # set_state on each tab already falls back per missing/unknown key.
+        self._apply_state(state)
+        self._set_status(f"Preset loaded: {Path(path).name}")
 
     # -- Event queue (worker thread -> main thread) -----------------------
     def _drain_events(self) -> None:
@@ -270,6 +424,7 @@ class MainWindow(ctk.CTk):
         self.playlist_tab.set_controls_enabled(True)
         self.subtitles_tab.set_controls_enabled(True)
         self.advanced_tab.set_controls_enabled(True)
+        self._set_utility_enabled(True)
 
         if self._stopping:
             self._set_status("Stopped.")
@@ -277,6 +432,8 @@ class MainWindow(ctk.CTk):
             if self._mode == "download":
                 self.progress_bar.set(1.0)
                 self._set_status("Completed successfully.")
+            elif self._mode == "update":
+                self._set_status("yt-dlp update finished (see raw log).")
             else:
                 self._set_status("Formats listed (see raw log).")
         else:
@@ -284,6 +441,12 @@ class MainWindow(ctk.CTk):
 
         self._mode = ""
         self._update_run_state()
+
+    def _set_utility_enabled(self, enabled: bool) -> None:
+        """Enable/disable the preset + update buttons during a run."""
+        state = "normal" if enabled else "disabled"
+        for button in (self.save_button, self.load_button, self.update_button):
+            button.configure(state=state)
 
     # -- Dependency check --------------------------------------------------
     def _run_dependency_check(self) -> None:

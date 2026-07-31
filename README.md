@@ -123,3 +123,19 @@ The **Advanced** tab exposes throttling, authentication, and SponsorBlock option
   `filler`, `interaction`, `music_offtopic`) choose *Mark* (create chapters) and/or
   *Remove* (cut the segment). If a category is set to both, yt-dlp's own precedence
   (remove wins) applies.
+
+### Phase 6 — Command preview, presets, copy & self-update
+The final functional phase adds tools that sit outside the tabs, reflecting the combined
+state of all of them:
+- **Live command preview**: a persistent, read-only panel below the tabs shows the exact
+  `yt-dlp` command your current settings would run, updating as you change any control on
+  any tab (a `<URL>` placeholder stands in until you enter a URL).
+- **Copy command**: copies that command to the clipboard, ready to paste into a terminal.
+- **Presets (Save / Load)**: save the full state of every tab to a JSON file (in a
+  `presets/` folder) and load it back later to restore the whole UI — not just the flags.
+  Loading tolerates older/partial preset files, falling back to defaults for anything
+  missing.
+- **Update yt-dlp**: runs `yt-dlp -U` to self-update the underlying tool, streaming its
+  output to the raw log. No URL needed.
+
+At this point every yt-dlp option in the tool's scope is wired — see `PORT-PARITY.md`.

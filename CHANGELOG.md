@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### Phase 6 — 2026-07-31
+- Live command-preview panel (persistent, below the tabs): a read-only textbox that
+  polls every ~400ms via `after()` and shows the exact `yt-dlp` command the current
+  settings across all tabs would run (`<URL>` placeholder until a URL is entered). Both
+  Run and the preview share a single `_collect_flag_args()` builder.
+- Copy-command button: copies the current command to the clipboard (Tkinter clipboard,
+  no dependency) and flashes "Copied!" for a second.
+- Presets: Save/Load buttons serialize the full UI state (not just the args) to JSON in a
+  `presets/` folder. Each tab gained `get_state()` / `set_state()`; loading falls back to
+  per-control defaults for missing/unknown keys and ignores malformed files without
+  crashing, then resyncs cross-tab dependencies.
+- yt-dlp self-update button: runs `yt-dlp -U` through the same threaded `CommandRunner`,
+  streaming output to the raw log with a success/failure status; works with no URL entered.
+- PORT-PARITY.md is now fully `Wired` (final Meta row `-U`/`--update` wired this phase).
+
 ### Phase 5 — 2026-07-31
 - Advanced tab (`app/ui/tabs/advanced_tab.py`, hosted in a scrollable frame): rate limit
   (`-r`) toggle + value, sleep interval (`--sleep-interval`) toggle + numeric value with

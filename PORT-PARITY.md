@@ -44,5 +44,5 @@ Tracks GUI coverage of yt-dlp CLI options. Status: `Not wired` / `Wired` / `Wire
 ## Meta
 | Flag | Status | Phase |
 |---|---|---|
-| -U / --update | Not wired | 6 |
+| -U / --update | Wired | 6 |
 | Progress bar parsing (from yt-dlp's `[download] NN.N%` stdout lines, into a real progress widget — not just raw log scroll) | Wired | 1 |

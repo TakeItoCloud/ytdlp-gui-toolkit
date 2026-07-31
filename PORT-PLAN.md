@@ -15,7 +15,7 @@
 - [x] Phase 5 — Advanced tab: rate limit, sleep interval, cookies-from-browser
                 (with explicit UI warning it reads the browser's credential store),
                 SponsorBlock mark/remove
-- [ ] Phase 6 — Command preview panel, presets (save/load JSON), copy-command button,
+- [x] Phase 6 — Command preview panel, presets (save/load JSON), copy-command button,
                 yt-dlp self-update button, PORT-PARITY.md reaches 100%
 - [ ] Phase 7 (optional, future) — PyInstaller packaging into standalone .exe
 

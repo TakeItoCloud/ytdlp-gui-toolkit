@@ -211,6 +211,31 @@ class PlaylistTab:
         self._unlocked = enabled
         self._refresh_states()
 
+    # -- Preset state (UI values, distinct from get_args CLI flags) ---------
+    def get_state(self) -> dict:
+        """Serialize the tab's control values for a preset."""
+        return {
+            "handling": self.handling_menu.get(),
+            "items": self.items_var.get(),
+            "archive_on": bool(self.archive_var.get()),
+            "archive_path": self.archive_path_var.get(),
+        }
+
+    def set_state(self, state: dict) -> None:
+        """Restore control values from a preset, falling back per missing key."""
+        handling = state.get("handling", "")
+        if handling in config.PLAYLIST_HANDLING:
+            self.handling_menu.set(handling)
+        else:
+            self.handling_menu.set(next(iter(config.PLAYLIST_HANDLING)))
+
+        self.items_var.set(state.get("items", ""))
+        self.archive_var.set(bool(state.get("archive_on", False)))
+        self.archive_path_var.set(state.get("archive_path", ""))
+
+        self._refresh_states()
+        self._validate_items()
+
     # -- Helpers / accessors ----------------------------------------------
     def _is_no_playlist(self) -> bool:
         return self.handling_menu.get() == config.PLAYLIST_NO_PLAYLIST_LABEL

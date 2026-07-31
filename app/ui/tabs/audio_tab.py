@@ -156,6 +156,32 @@ class AudioTab:
         self._unlocked = enabled
         self._refresh_states()
 
+    # -- Preset state (UI values, distinct from get_args CLI flags) ---------
+    def get_state(self) -> dict:
+        """Serialize the tab's control values for a preset."""
+        return {
+            "extract": bool(self.extract_var.get()),
+            "format": self.format_menu.get(),
+            "quality": self.quality_menu.get(),
+            "custom_bitrate": self.custom_bitrate_var.get(),
+        }
+
+    def set_state(self, state: dict) -> None:
+        """Restore control values from a preset, falling back per missing key."""
+        self.extract_var.set(bool(state.get("extract", False)))
+
+        fmt = state.get("format", "")
+        self.format_menu.set(fmt if fmt in config.AUDIO_FORMATS else config.AUDIO_FORMATS[0])
+
+        quality = state.get("quality", "")
+        if quality in config.AUDIO_QUALITY_PRESETS:
+            self.quality_menu.set(quality)
+        else:
+            self.quality_menu.set(list(config.AUDIO_QUALITY_PRESETS.keys())[1])
+        self.custom_bitrate_var.set(state.get("custom_bitrate", ""))
+
+        self._refresh_states()
+
     # -- Public accessors --------------------------------------------------
     def is_extract_on(self) -> bool:
         """True when audio-only extraction is enabled."""

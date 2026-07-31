@@ -199,6 +199,42 @@ class CoreTab:
         """Run is allowed only when a non-empty URL is present."""
         return bool(self.get_url())
 
+    # -- Preset state (UI values, distinct from get_args CLI flags) ---------
+    def get_state(self) -> dict:
+        """Serialize the tab's control values for a preset."""
+        return {
+            "url": self.url_var.get(),
+            "format": self.format_menu.get(),
+            "custom_format": self.custom_format_var.get(),
+            "output": self.output_menu.get(),
+            "custom_output": self.custom_output_var.get(),
+            "path": self.path_var.get(),
+        }
+
+    def set_state(self, state: dict) -> None:
+        """Restore control values from a preset, falling back per missing key."""
+        self.url_var.set(state.get("url", ""))
+
+        fmt = state.get("format", "")
+        if fmt in config.FORMAT_PRESETS:
+            self.format_menu.set(fmt)
+        else:
+            self.format_menu.set(next(iter(config.FORMAT_PRESETS)))
+        self.custom_format_var.set(state.get("custom_format", ""))
+
+        out = state.get("output", "")
+        if out in config.OUTPUT_PRESETS:
+            self.output_menu.set(out)
+        else:
+            self.output_menu.set(next(iter(config.OUTPUT_PRESETS)))
+        self.custom_output_var.set(state.get("custom_output", ""))
+
+        self.path_var.set(state.get("path", ""))
+
+        # Reveal/hide the custom entries to match the restored dropdowns.
+        self._on_format_change()
+        self._on_output_change()
+
     def set_controls_enabled(self, enabled: bool) -> None:
         """Lock/unlock all inputs while a run is in progress."""
         self._unlocked = enabled
