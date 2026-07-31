@@ -1,1 +1,141 @@
 # ytdlp-gui-toolkit
+
+A lightweight desktop GUI that wraps the [`yt-dlp`](https://github.com/yt-dlp/yt-dlp)
+command-line tool. Instead of memorizing flags, you build a `yt-dlp` command from
+tabbed sections in a small [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter)
+window; the app runs `yt-dlp` as a subprocess and streams its progress and output
+back into the UI. It's a personal tool for Windows, run as a script.
+
+## Requirements
+
+- **Python 3.11+**
+- **[yt-dlp](https://github.com/yt-dlp/yt-dlp)** — installed separately (via `pip`, or
+  as the standalone binary on your PATH)
+- **[ffmpeg](https://ffmpeg.org/)** — on your PATH (needed for merging, remuxing, and
+  audio extraction)
+
+`yt-dlp` and `ffmpeg` are **not** bundled. The app checks for both at startup and warns
+clearly if either is missing.
+
+## Setup
+
+```bash
+# from the repo root
+python -m venv .venv
+.venv\Scripts\activate          # Windows
+# source .venv/bin/activate     # macOS/Linux
+
+python -m pip install -r requirements.txt
+```
+
+Make sure `ffmpeg` is installed and on your PATH (e.g. `winget install Gyan.FFmpeg`
+on Windows).
+
+## Run
+
+```bash
+python main.py
+```
+
+## Features
+
+Features are built up phase by phase (see `PORT-PLAN.md`).
+
+### Phase 0 — Scaffold & startup checks
+- Main window shell with a tab bar for the five planned sections (Core, Audio,
+  Playlist, Subtitles, Advanced — empty for now), a read-only log console, and
+  Run/Stop buttons (disabled until a real command is wired in Phase 1).
+- **Startup dependency check**: on launch, the app verifies that `yt-dlp` (importable
+  as a Python module or found on PATH) and `ffmpeg` (on PATH) are present. Results are
+  written to the log console, and a dialog with install instructions appears if
+  anything is missing — no silent failures.
+
+### Phase 1 — Core tab & real downloads
+The app can now actually download videos. The **Core** tab drives a real `yt-dlp`
+subprocess:
+- **URL** field for a single video or playlist URL (Run stays disabled until a URL is
+  entered).
+- **Format** dropdown mapping friendly labels to real `-f` values — *Best
+  (video+audio, merged)*, *Best up to 1080p*, *Best up to 720p*, or a *Custom format
+  string...* option that reveals a free-text `-f` entry. A **List available formats**
+  button runs `yt-dlp -F <url>` and shows the table in the raw-log panel.
+- **Output template** dropdown for common `-o` patterns (`%(title)s.%(ext)s`,
+  `%(uploader)s/%(title)s.%(ext)s`, `%(upload_date)s - %(title)s.%(ext)s`) plus a
+  custom option.
+- **Download folder** entry with a **Browse...** picker, defaulting to your Downloads
+  folder.
+- **Run / Stop**: Run launches yt-dlp in a background thread; Stop terminates it
+  cleanly (with a force-kill fallback).
+- **Progress bar + status**: yt-dlp's `[download] NN.N%` output is parsed into a real
+  determinate progress bar, with a status label that shows the live percentage and
+  switches to non-progress steps (e.g. `[Merger] Merging formats...`) as they happen.
+- **Collapsible raw log**: the full yt-dlp output is available behind a *Show raw log*
+  toggle (collapsed by default) for debugging.
+
+### Phase 2 — Audio tab (extract audio)
+The **Audio** tab turns a download into an audio-only extraction:
+- **Extract audio only** toggle (`-x`). While it's off, the rest of the Audio tab is
+  disabled so its settings can't silently do nothing.
+- **Audio format** (`--audio-format`): `best`, `mp3`, `m4a`, `flac`, `wav`, `opus`,
+  `vorbis`, `aac`, or `alac`.
+- **Audio quality** (`--audio-quality`): presets *Best (0)*, *Good (5)*, *Smaller file
+  (9)*, or a *Custom bitrate...* entry for values like `128K` / `192K` / `320K`.
+- Turning on extract-audio greys out the Core tab's video **Format** controls (with an
+  inline note) and drops `-f` from the command, letting yt-dlp choose the best audio
+  source rather than sending a conflicting video selector. The output template and
+  download folder from the Core tab still apply.
+
+### Phase 3 — Playlist tab
+The **Playlist** tab controls how playlist URLs are handled:
+- **Playlist handling**: *Auto* (yt-dlp's default), *Video only, ignore playlist*
+  (`--no-playlist`), or *Full playlist* (`--yes-playlist`).
+- **Playlist items** (`-I`): a range like `1,3,5-10` (yt-dlp's full range/step syntax
+  is supported — it's passed through as typed; a light sanity check flags obviously
+  invalid characters). The field greys out under *Video only* since it wouldn't apply.
+- **Download archive** (`--download-archive`): a toggle plus a file path (with Browse)
+  recording the IDs of already-downloaded items so repeat runs skip them. Defaults to
+  `archive.txt` in your download folder, and works for both video and audio-only
+  downloads.
+
+### Phase 4 — Subtitles tab
+The **Subtitles** tab controls subtitle downloading and embedding:
+- **Write subtitles** (`--write-subs`) and **Write auto-generated subtitles**
+  (`--write-auto-subs`): independent toggles — enable either or both.
+- **Subtitle languages** (`--sub-langs`): a comma-separated list or yt-dlp language
+  syntax like `en,ja`, `all`, or `all,-live_chat` (passed through as typed, with a light
+  sanity check). The field is only enabled when a write-subtitles toggle is on.
+- **Embed subtitles into video** (`--embed-subs`): muxes subtitles into the video file
+  (mp4/webm/mkv). It greys out with a note when the Audio tab's *Extract audio only* is
+  on, since there is no video to embed into.
+
+### Phase 5 — Advanced tab
+The **Advanced** tab exposes throttling, authentication, and SponsorBlock options:
+- **Rate limit** (`-r`): cap download speed, e.g. `2M`, `50K`, `4.2M`.
+- **Sleep interval** (`--sleep-interval`): seconds to wait between downloads.
+- **Cookies from browser** (`--cookies-from-browser`): read your login cookies from
+  `chrome`, `chromium`, `edge`, `firefox`, `brave`, `opera`, `safari`, `vivaldi`, or
+  `whale`. **⚠️ This reads cookies directly from your browser's saved
+  session/credential store** — only use it for content you're logged into and want
+  yt-dlp to access on your behalf. The tab shows this warning prominently whenever it's
+  open (not just once in a dialog).
+- **SponsorBlock** (`--sponsorblock-mark` / `--sponsorblock-remove`): enable
+  SponsorBlock, then per category (`sponsor`, `intro`, `outro`, `selfpromo`, `preview`,
+  `filler`, `interaction`, `music_offtopic`) choose *Mark* (create chapters) and/or
+  *Remove* (cut the segment). If a category is set to both, yt-dlp's own precedence
+  (remove wins) applies.
+
+### Phase 6 — Command preview, presets, copy & self-update
+The final functional phase adds tools that sit outside the tabs, reflecting the combined
+state of all of them:
+- **Live command preview**: a persistent, read-only panel below the tabs shows the exact
+  `yt-dlp` command your current settings would run, updating as you change any control on
+  any tab (a `<URL>` placeholder stands in until you enter a URL).
+- **Copy command**: copies that command to the clipboard, ready to paste into a terminal.
+- **Presets (Save / Load)**: save the full state of every tab to a JSON file (in a
+  `presets/` folder) and load it back later to restore the whole UI — not just the flags.
+  Loading tolerates older/partial preset files, falling back to defaults for anything
+  missing.
+- **Update yt-dlp**: runs `yt-dlp -U` to self-update the underlying tool, streaming its
+  output to the raw log. No URL needed.
+
+At this point every yt-dlp option in the tool's scope is wired — see `PORT-PARITY.md`.

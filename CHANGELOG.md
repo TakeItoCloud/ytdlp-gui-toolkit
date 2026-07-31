@@ -1,0 +1,97 @@
+# Changelog
+
+## [Unreleased]
+
+### Phase 6 — 2026-07-31
+- Live command-preview panel (persistent, below the tabs): a read-only textbox that
+  polls every ~400ms via `after()` and shows the exact `yt-dlp` command the current
+  settings across all tabs would run (`<URL>` placeholder until a URL is entered). Both
+  Run and the preview share a single `_collect_flag_args()` builder.
+- Copy-command button: copies the current command to the clipboard (Tkinter clipboard,
+  no dependency) and flashes "Copied!" for a second.
+- Presets: Save/Load buttons serialize the full UI state (not just the args) to JSON in a
+  `presets/` folder. Each tab gained `get_state()` / `set_state()`; loading falls back to
+  per-control defaults for missing/unknown keys and ignores malformed files without
+  crashing, then resyncs cross-tab dependencies.
+- yt-dlp self-update button: runs `yt-dlp -U` through the same threaded `CommandRunner`,
+  streaming output to the raw log with a success/failure status; works with no URL entered.
+- PORT-PARITY.md is now fully `Wired` (final Meta row `-U`/`--update` wired this phase).
+
+### Phase 5 — 2026-07-31
+- Advanced tab (`app/ui/tabs/advanced_tab.py`, hosted in a scrollable frame): rate limit
+  (`-r`) toggle + value, sleep interval (`--sleep-interval`) toggle + numeric value with
+  a loose sanity check, cookies-from-browser (`--cookies-from-browser`) toggle + browser
+  dropdown, and SponsorBlock (`--sponsorblock-mark` / `--sponsorblock-remove`) as a
+  per-category Mark/Remove checkbox grid whose checked categories are comma-joined into
+  each flag (empty column → flag omitted).
+- Cookies-from-browser carries an always-visible warning label (not a one-time dialog)
+  stating that the flag reads the browser's saved session/credential store and should
+  only be used for content the user is logged into.
+- Command building extended with `AdvancedTab.get_args()`, concatenated after the other
+  tabs; the tab is included in the run-lock.
+
+### Phase 4 — 2026-07-31
+- Subtitles tab (`app/ui/tabs/subtitles_tab.py`): "Write subtitles" (`--write-subs`)
+  and "Write auto-generated subtitles" (`--write-auto-subs`) toggles (independent, both
+  may be on), a subtitle-languages field (`--sub-langs`, free-text with a loose sanity
+  check + inline warning — no full-grammar parsing), and an "Embed subtitles into video"
+  toggle (`--embed-subs`).
+- Command building extended with `SubtitlesTab.get_args()`, concatenated after the
+  Core/Audio/Playlist args; the tab is included in the run-lock.
+- Interactions: the languages field greys out (and `--sub-langs` is dropped) unless at
+  least one write-subtitles toggle is on. `--embed-subs` greys out with an inline note —
+  and is dropped from the command — when the Audio tab's extract-audio mode is on, since
+  there is no video container to embed into (one-directional dependency; write-subs and
+  sub-langs remain valid alongside audio extraction).
+
+### Phase 3 — 2026-07-31
+- Playlist tab (`app/ui/tabs/playlist_tab.py`): playlist handling dropdown (Auto /
+  `--no-playlist` / `--yes-playlist`), playlist items field (`-I`, free-text range
+  syntax with a loose `[0-9,:\-]` sanity check and inline warning — no full-grammar
+  parsing), and a download-archive toggle (`--download-archive`) with a path entry and
+  Browse (asksaveasfilename, so an existing or new file both work). The archive path
+  defaults to `archive.txt` in the Core tab's download folder when first enabled.
+- Command building extended with `PlaylistTab.get_args()`, concatenated after the Core
+  and Audio tab args.
+- Interaction: selecting "Video only, ignore playlist" greys out the playlist-items
+  field and drops `-I` from the built command. The download archive is file-type
+  agnostic, so it coexists with extract-audio mode with no special handling.
+
+### Phase 2 — 2026-07-31
+- Audio tab (`app/ui/tabs/audio_tab.py`): "Extract audio only" toggle (`-x`), audio
+  format dropdown (`--audio-format`: best/mp3/m4a/flac/wav/opus/vorbis/aac/alac), and
+  audio quality (`--audio-quality`) via presets (Best 0 / Good 5 / Smaller 9) plus a
+  "Custom bitrate..." entry for values like `128K`. When extract-audio is off, the
+  format/quality controls are visually disabled and contribute nothing to the command.
+- Command building extended: each tab exposes its own args method
+  (`AudioTab.get_args()`), and the Run handler concatenates
+  `core.build_download_args() + audio.get_args() + [url]`.
+- Core/Audio interaction: turning on extract-audio greys out the Core tab's video
+  format controls (with an inline note) and suppresses `-f` from the built command, so
+  yt-dlp picks the best audio source itself instead of receiving a conflicting video
+  selector. Toggling off restores them.
+
+### Phase 1 — 2026-07-31
+- Real `CommandRunner`: launches yt-dlp in a background thread, streams stdout line
+  by line (uses `--newline` so progress updates arrive as discrete lines), parses
+  `[download] NN.N%` lines into a float via regex, and reports back through
+  `on_output` / `on_progress` / `on_done` callbacks. `stop()` terminates the process
+  with a force-kill fallback; missing-executable and launch errors are handled without
+  crashing.
+- Runner reuses the Phase 0 dependency detection via a new
+  `resolve_ytdlp_command()` helper (prefers the `yt-dlp` executable on PATH, falls
+  back to `python -u -m yt_dlp`).
+- Core tab (`app/ui/tabs/core_tab.py`): URL entry with non-empty validation, format
+  preset dropdown (Best / ≤1080p / ≤720p / custom `-f`), "List available formats"
+  (`yt-dlp -F`), output-template dropdown (with custom option), and a download-folder
+  entry with a Browse button defaulting to the user's Downloads folder.
+- Main window: determinate `CTkProgressBar` + status label driven by parsed progress,
+  a collapsible raw-log panel (collapsed by default), and Run/Stop buttons wired to the
+  runner. All worker-thread callbacks are marshaled to the main thread through a
+  thread-safe queue polled via `after()`.
+
+### Phase 0 — 2026-07-31
+- Initial repo scaffold
+- Dependency check for yt-dlp and ffmpeg on startup
+- Main window shell with empty tab bar, log console placeholder, Run/Stop buttons (disabled
+  until Phase 1 wires a real command)
