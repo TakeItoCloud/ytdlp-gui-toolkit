@@ -25,6 +25,7 @@ from app.core.runner import CommandRunner
 from app.ui.tabs.audio_tab import AudioTab
 from app.ui.tabs.core_tab import CoreTab
 from app.ui.tabs.playlist_tab import PlaylistTab
+from app.ui.tabs.subtitles_tab import SubtitlesTab
 
 _STATUS_MAX = 90  # truncate long status lines so the label doesn't blow out
 
@@ -84,11 +85,17 @@ class MainWindow(ctk.CTk):
             self.tabview.tab("Playlist"),
             get_download_dir=self.core_tab.get_download_dir,
         )
+        self.subtitles_tab = SubtitlesTab(
+            self.tabview.tab("Subtitles"),
+            is_extract_audio_on=self.audio_tab.is_extract_on,
+        )
         self.tabview.set("Core")
 
     def _on_audio_extract_change(self) -> None:
-        """Grey/restore the Core tab's video-format controls to match audio mode."""
-        self.core_tab.set_format_active(not self.audio_tab.is_extract_on())
+        """Sync controls that depend on the Audio tab's extract-audio mode."""
+        extract_on = self.audio_tab.is_extract_on()
+        self.core_tab.set_format_active(not extract_on)
+        self.subtitles_tab.refresh_audio_dependency()
 
     def _build_progress_row(self) -> None:
         frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -181,6 +188,7 @@ class MainWindow(ctk.CTk):
             *self.core_tab.build_download_args(),
             *self.audio_tab.get_args(),
             *self.playlist_tab.get_args(),
+            *self.subtitles_tab.get_args(),
             url,
         ]
         self._launch(args, mode="download", running_status="Starting download…")
@@ -210,6 +218,7 @@ class MainWindow(ctk.CTk):
         self.core_tab.set_controls_enabled(False)
         self.audio_tab.set_controls_enabled(False)
         self.playlist_tab.set_controls_enabled(False)
+        self.subtitles_tab.set_controls_enabled(False)
         self.run_button.configure(state="disabled")
         self.stop_button.configure(state="normal")
 
@@ -255,6 +264,7 @@ class MainWindow(ctk.CTk):
         self.core_tab.set_controls_enabled(True)
         self.audio_tab.set_controls_enabled(True)
         self.playlist_tab.set_controls_enabled(True)
+        self.subtitles_tab.set_controls_enabled(True)
 
         if self._stopping:
             self._set_status("Stopped.")

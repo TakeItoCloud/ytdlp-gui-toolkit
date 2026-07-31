@@ -27,10 +27,10 @@ Tracks GUI coverage of yt-dlp CLI options. Status: `Not wired` / `Wired` / `Wire
 ## Subtitles
 | Flag | Status | Phase |
 |---|---|---|
-| --write-subs | Not wired | 4 |
-| --write-auto-subs | Not wired | 4 |
-| --sub-langs | Not wired | 4 |
-| --embed-subs | Not wired | 4 |
+| --write-subs | Wired | 4 |
+| --write-auto-subs | Wired | 4 |
+| --sub-langs | Wired | 4 |
+| --embed-subs | Wired | 4 |
 
 ## Advanced
 | Flag | Status | Phase |

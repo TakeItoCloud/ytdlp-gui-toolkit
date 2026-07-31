@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### Phase 4 — 2026-07-31
+- Subtitles tab (`app/ui/tabs/subtitles_tab.py`): "Write subtitles" (`--write-subs`)
+  and "Write auto-generated subtitles" (`--write-auto-subs`) toggles (independent, both
+  may be on), a subtitle-languages field (`--sub-langs`, free-text with a loose sanity
+  check + inline warning — no full-grammar parsing), and an "Embed subtitles into video"
+  toggle (`--embed-subs`).
+- Command building extended with `SubtitlesTab.get_args()`, concatenated after the
+  Core/Audio/Playlist args; the tab is included in the run-lock.
+- Interactions: the languages field greys out (and `--sub-langs` is dropped) unless at
+  least one write-subtitles toggle is on. `--embed-subs` greys out with an inline note —
+  and is dropped from the command — when the Audio tab's extract-audio mode is on, since
+  there is no video container to embed into (one-directional dependency; write-subs and
+  sub-langs remain valid alongside audio extraction).
+
 ### Phase 3 — 2026-07-31
 - Playlist tab (`app/ui/tabs/playlist_tab.py`): playlist handling dropdown (Auto /
   `--no-playlist` / `--yes-playlist`), playlist items field (`-I`, free-text range

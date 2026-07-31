@@ -96,3 +96,14 @@ The **Playlist** tab controls how playlist URLs are handled:
   recording the IDs of already-downloaded items so repeat runs skip them. Defaults to
   `archive.txt` in your download folder, and works for both video and audio-only
   downloads.
+
+### Phase 4 — Subtitles tab
+The **Subtitles** tab controls subtitle downloading and embedding:
+- **Write subtitles** (`--write-subs`) and **Write auto-generated subtitles**
+  (`--write-auto-subs`): independent toggles — enable either or both.
+- **Subtitle languages** (`--sub-langs`): a comma-separated list or yt-dlp language
+  syntax like `en,ja`, `all`, or `all,-live_chat` (passed through as typed, with a light
+  sanity check). The field is only enabled when a write-subtitles toggle is on.
+- **Embed subtitles into video** (`--embed-subs`): muxes subtitles into the video file
+  (mp4/webm/mkv). It greys out with a note when the Audio tab's *Extract audio only* is
+  on, since there is no video to embed into.
