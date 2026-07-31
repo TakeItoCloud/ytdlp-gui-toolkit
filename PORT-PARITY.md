@@ -20,9 +20,9 @@ Tracks GUI coverage of yt-dlp CLI options. Status: `Not wired` / `Wired` / `Wire
 ## Playlist
 | Flag | Status | Phase |
 |---|---|---|
-| -I / --playlist-items | Not wired | 3 |
-| --no-playlist / --yes-playlist | Not wired | 3 |
-| --download-archive | Not wired | 3 |
+| -I / --playlist-items | Wired | 3 |
+| --no-playlist / --yes-playlist | Wired | 3 |
+| --download-archive | Wired | 3 |
 
 ## Subtitles
 | Flag | Status | Phase |

@@ -84,3 +84,15 @@ The **Audio** tab turns a download into an audio-only extraction:
   inline note) and drops `-f` from the command, letting yt-dlp choose the best audio
   source rather than sending a conflicting video selector. The output template and
   download folder from the Core tab still apply.
+
+### Phase 3 — Playlist tab
+The **Playlist** tab controls how playlist URLs are handled:
+- **Playlist handling**: *Auto* (yt-dlp's default), *Video only, ignore playlist*
+  (`--no-playlist`), or *Full playlist* (`--yes-playlist`).
+- **Playlist items** (`-I`): a range like `1,3,5-10` (yt-dlp's full range/step syntax
+  is supported — it's passed through as typed; a light sanity check flags obviously
+  invalid characters). The field greys out under *Video only* since it wouldn't apply.
+- **Download archive** (`--download-archive`): a toggle plus a file path (with Browse)
+  recording the IDs of already-downloaded items so repeat runs skip them. Defaults to
+  `archive.txt` in your download folder, and works for both video and audio-only
+  downloads.

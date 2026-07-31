@@ -76,3 +76,18 @@ AUDIO_QUALITY_PRESETS: dict[str, str] = {
     "Smaller file (9)": "9",
     CUSTOM_BITRATE_LABEL: "",
 }
+
+# --- Playlist tab: playlist handling ----------------------------------------
+# Human label -> yt-dlp flag. "Auto" adds nothing (yt-dlp's own default). The
+# "Video only" sentinel also greys out the playlist-items field.
+PLAYLIST_NO_PLAYLIST_LABEL = "Video only, ignore playlist"
+PLAYLIST_HANDLING: dict[str, str] = {
+    "Auto (yt-dlp default)": "",
+    PLAYLIST_NO_PLAYLIST_LABEL: "--no-playlist",
+    "Full playlist": "--yes-playlist",
+}
+
+# --- Playlist tab: download archive -----------------------------------------
+# Default filename suggested (in the Core tab's download folder) when the
+# download-archive toggle is switched on with an empty path.
+DEFAULT_ARCHIVE_FILENAME = "archive.txt"

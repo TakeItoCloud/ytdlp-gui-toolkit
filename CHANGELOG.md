@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Phase 3 — 2026-07-31
+- Playlist tab (`app/ui/tabs/playlist_tab.py`): playlist handling dropdown (Auto /
+  `--no-playlist` / `--yes-playlist`), playlist items field (`-I`, free-text range
+  syntax with a loose `[0-9,:\-]` sanity check and inline warning — no full-grammar
+  parsing), and a download-archive toggle (`--download-archive`) with a path entry and
+  Browse (asksaveasfilename, so an existing or new file both work). The archive path
+  defaults to `archive.txt` in the Core tab's download folder when first enabled.
+- Command building extended with `PlaylistTab.get_args()`, concatenated after the Core
+  and Audio tab args.
+- Interaction: selecting "Video only, ignore playlist" greys out the playlist-items
+  field and drops `-I` from the built command. The download archive is file-type
+  agnostic, so it coexists with extract-audio mode with no special handling.
+
 ### Phase 2 — 2026-07-31
 - Audio tab (`app/ui/tabs/audio_tab.py`): "Extract audio only" toggle (`-x`), audio
   format dropdown (`--audio-format`: best/mp3/m4a/flac/wav/opus/vorbis/aac/alac), and

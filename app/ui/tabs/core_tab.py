@@ -191,6 +191,10 @@ class CoreTab:
         """The trimmed URL text."""
         return self.url_var.get().strip()
 
+    def get_download_dir(self) -> str:
+        """The trimmed download-folder path (empty if unset)."""
+        return self.path_var.get().strip()
+
     def is_valid(self) -> bool:
         """Run is allowed only when a non-empty URL is present."""
         return bool(self.get_url())

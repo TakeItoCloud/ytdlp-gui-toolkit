@@ -24,6 +24,7 @@ from app.core.dependency_check import (
 from app.core.runner import CommandRunner
 from app.ui.tabs.audio_tab import AudioTab
 from app.ui.tabs.core_tab import CoreTab
+from app.ui.tabs.playlist_tab import PlaylistTab
 
 _STATUS_MAX = 90  # truncate long status lines so the label doesn't blow out
 
@@ -78,6 +79,10 @@ class MainWindow(ctk.CTk):
         self.audio_tab = AudioTab(
             self.tabview.tab("Audio"),
             on_extract_change=self._on_audio_extract_change,
+        )
+        self.playlist_tab = PlaylistTab(
+            self.tabview.tab("Playlist"),
+            get_download_dir=self.core_tab.get_download_dir,
         )
         self.tabview.set("Core")
 
@@ -175,6 +180,7 @@ class MainWindow(ctk.CTk):
         args = [
             *self.core_tab.build_download_args(),
             *self.audio_tab.get_args(),
+            *self.playlist_tab.get_args(),
             url,
         ]
         self._launch(args, mode="download", running_status="Starting download…")
@@ -203,6 +209,7 @@ class MainWindow(ctk.CTk):
         # Lock the UI for the duration of the run.
         self.core_tab.set_controls_enabled(False)
         self.audio_tab.set_controls_enabled(False)
+        self.playlist_tab.set_controls_enabled(False)
         self.run_button.configure(state="disabled")
         self.stop_button.configure(state="normal")
 
@@ -247,6 +254,7 @@ class MainWindow(ctk.CTk):
     def _on_done(self, returncode: int) -> None:
         self.core_tab.set_controls_enabled(True)
         self.audio_tab.set_controls_enabled(True)
+        self.playlist_tab.set_controls_enabled(True)
 
         if self._stopping:
             self._set_status("Stopped.")
