@@ -1,0 +1,48 @@
+# yt-dlp Flag Parity Tracker
+
+Tracks GUI coverage of yt-dlp CLI options. Status: `Not wired` / `Wired` / `Wired (partial)`.
+
+## Core / Format
+| Flag | Status | Phase |
+|---|---|---|
+| -f / --format | Not wired | 1 |
+| -F / --list-formats | Not wired | 1 |
+| -o / --output | Not wired | 1 |
+| -P / --paths | Not wired | 1 |
+
+## Audio
+| Flag | Status | Phase |
+|---|---|---|
+| -x / --extract-audio | Not wired | 2 |
+| --audio-format | Not wired | 2 |
+| --audio-quality | Not wired | 2 |
+
+## Playlist
+| Flag | Status | Phase |
+|---|---|---|
+| -I / --playlist-items | Not wired | 3 |
+| --no-playlist / --yes-playlist | Not wired | 3 |
+| --download-archive | Not wired | 3 |
+
+## Subtitles
+| Flag | Status | Phase |
+|---|---|---|
+| --write-subs | Not wired | 4 |
+| --write-auto-subs | Not wired | 4 |
+| --sub-langs | Not wired | 4 |
+| --embed-subs | Not wired | 4 |
+
+## Advanced
+| Flag | Status | Phase |
+|---|---|---|
+| -r / --limit-rate | Not wired | 5 |
+| --sleep-interval | Not wired | 5 |
+| --cookies-from-browser | Not wired | 5 |
+| --sponsorblock-mark | Not wired | 5 |
+| --sponsorblock-remove | Not wired | 5 |
+
+## Meta
+| Flag | Status | Phase |
+|---|---|---|
+| -U / --update | Not wired | 6 |
+| Progress bar parsing (from yt-dlp's `[download] NN.N%` stdout lines, into a real progress widget — not just raw log scroll) | Not wired | 1 |

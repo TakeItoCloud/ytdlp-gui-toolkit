@@ -1,0 +1,16 @@
+"""Entry point for ytdlp-gui-toolkit.
+
+Run with:  python main.py
+"""
+
+from __future__ import annotations
+
+from app.ui.main_window import launch
+
+
+def main() -> None:
+    launch()
+
+
+if __name__ == "__main__":
+    main()
