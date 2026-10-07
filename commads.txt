@@ -1,4 +1,9 @@
-
+Get-Content .\IMP1-63155-UnquotedServicePaths-ALL.txt | ForEach-Object {
+    [pscustomobject]@{
+        Host  = $_
+        WinRM = (Test-NetConnection $_ -Port 5985 -WarningAction SilentlyContinue).TcpTestSucceeded
+    }
+} | Sort-Object WinRM -Descending | Format-Table -Auto
 
 
 cd C:\Scripts\IMP1
