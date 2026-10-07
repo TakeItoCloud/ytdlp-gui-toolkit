@@ -1,0 +1,14 @@
+cd C:\Scripts\IMP1
+Get-ChildItem *.ps1 | Unblock-File
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned -Force
+
+# --- readiness check (read-only) ---
+[pscustomobject]@{
+    Elevated   = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    PSVersion  = $PSVersionTable.PSVersion.ToString()
+    GroupPolicyModule   = [bool](Get-Module -ListAvailable GroupPolicy)
+    ActiveDirectoryModule = [bool](Get-Module -ListAvailable ActiveDirectory)
+    Domain     = (Get-CimInstance Win32_ComputerSystem).Domain
+} | Format-List
+Write-Host "--- files present ---"
+Get-ChildItem -Name
