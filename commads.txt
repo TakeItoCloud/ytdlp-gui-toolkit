@@ -6,6 +6,16 @@ Get-Content .\IMP1-63155-UnquotedServicePaths-ALL.txt | ForEach-Object {
 } | Sort-Object WinRM -Descending | Format-Table -Auto
 
 
+Get-Content .\IMP1-63155-UnquotedServicePaths-ALL.txt | ForEach-Object {
+    $h = $_; $c = New-Object Net.Sockets.TcpClient; $ok = $false
+    try {
+        $ar = $c.BeginConnect($h, 5985, $null, $null)
+        $ok = $ar.AsyncWaitHandle.WaitOne(400)   # 400 ms timeout
+        if ($ok) { $c.EndConnect($ar) }
+    } catch { $ok = $false } finally { $c.Close() }
+    [pscustomobject]@{ Host = $h; WinRM = $ok }
+} | Sort-Object WinRM -Descending | Format-Table -Auto
+
 cd C:\Scripts\IMP1
 Get-ChildItem *.ps1 | Unblock-File
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned -Force
