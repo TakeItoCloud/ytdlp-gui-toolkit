@@ -28,3 +28,7 @@ $c1 = Get-Content .\IMP1-65057-InsecureServicePerms-WAVE1-first3.txt
 Invoke-Command -ComputerName $c1 -FilePath .\Repair-InsecureServicePermission.ps1 |
     Export-Csv .\IMP1-Logs\65057-wave1-REPORT.csv -NoTypeInformation
 Import-Csv .\IMP1-Logs\65057-wave1-REPORT.csv | Format-Table PSComputerName,Service,UnsafePrincipal,GrantedRights -Auto
+
+
+
+'mft-00','remote-aux','w1504' | % { Test-NetConnection "$_.ljc.local" -Port 5985 | Select ComputerName,TcpTestSucceeded }
