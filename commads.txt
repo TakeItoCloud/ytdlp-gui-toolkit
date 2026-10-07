@@ -1,3 +1,6 @@
+
+
+
 cd C:\Scripts\IMP1
 Get-ChildItem *.ps1 | Unblock-File
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned -Force
@@ -41,3 +44,5 @@ Import-Csv .\IMP1-Logs\65057-wave1-FILEPERM-REPORT.csv |
 
 
 
+Select-String -Path .\Repair-InsecureServiceFilePermission.ps1 -Pattern 'dangerBits','dangerMask' |
+    Select-Object Pattern,LineNumber
