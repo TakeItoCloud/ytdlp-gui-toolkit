@@ -32,3 +32,9 @@ Import-Csv .\IMP1-Logs\65057-wave1-REPORT.csv | Format-Table PSComputerName,Serv
 
 
 'mft-00','remote-aux','w1504' | % { Test-NetConnection "$_.ljc.local" -Port 5985 | Select ComputerName,TcpTestSucceeded }
+
+$c1 = 'sdesk.ljc.local','spri.ljc.local'
+Invoke-Command -ComputerName $c1 -FilePath .\Repair-InsecureServiceFilePermission.ps1 |
+    Export-Csv .\IMP1-Logs\65057-wave1-FILEPERM-REPORT.csv -NoTypeInformation
+Import-Csv .\IMP1-Logs\65057-wave1-FILEPERM-REPORT.csv |
+    Format-Table PSComputerName,Service,TargetType,Principal,Rights -Auto
