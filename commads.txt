@@ -16,3 +16,15 @@ Get-ChildItem -Name
 
 
 .\Add-Imp1MachinesToGroup.ps1 -Path .\IMP1-166555-WinVerifyTrust-WAVE1-first3.txt -GroupName grp-IMP1-WinVerifyTrust -WhatIf
+
+# Issue B - report only
+$b1 = Get-Content .\IMP1-63155-UnquotedServicePaths-WAVE1-first3.txt
+Invoke-Command -ComputerName $b1 -FilePath .\Repair-UnquotedServicePath.ps1 |
+    Export-Csv .\IMP1-Logs\63155-wave1-REPORT.csv -NoTypeInformation
+Import-Csv .\IMP1-Logs\63155-wave1-REPORT.csv | Format-Table PSComputerName,Service,Original,Proposed -Auto
+
+# Issue C - report only
+$c1 = Get-Content .\IMP1-65057-InsecureServicePerms-WAVE1-first3.txt
+Invoke-Command -ComputerName $c1 -FilePath .\Repair-InsecureServicePermission.ps1 |
+    Export-Csv .\IMP1-Logs\65057-wave1-REPORT.csv -NoTypeInformation
+Import-Csv .\IMP1-Logs\65057-wave1-REPORT.csv | Format-Table PSComputerName,Service,UnsafePrincipal,GrantedRights -Auto
