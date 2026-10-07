@@ -1,9 +1,13 @@
-Get-Content .\IMP1-63155-UnquotedServicePaths-ALL.txt | ForEach-Object {
-    [pscustomobject]@{
-        Host  = $_
-        WinRM = (Test-NetConnection $_ -Port 5985 -WarningAction SilentlyContinue).TcpTestSucceeded
-    }
-} | Sort-Object WinRM -Descending | Format-Table -Auto
+$targets = 'SBO-02C.ljc.local','SDataedo.ljc.local','SPRINT-01.ljc.local'
+$sess = New-PSSession -ComputerName $targets
+foreach ($s in $sess) { Copy-Item .\Repair-UnquotedServicePath.ps1 -Destination 'C:\Windows\Temp\' -ToSession $s -Force }
+Invoke-Command -Session $sess { & 'C:\Windows\Temp\Repair-UnquotedServicePath.ps1' -Mode Apply -Confirm:$false } |
+    Export-Csv .\IMP1-Logs\63155-canary-APPLY2.csv -NoTypeInformation
+Import-Csv .\IMP1-Logs\63155-canary-APPLY2.csv | Format-Table PSComputerName,Service,Applied,Proposed -Auto
+Remove-PSSession $sess
+
+Invoke-Command -ComputerName SBO-02C.ljc.local -FilePath .\Repair-UnquotedServicePath.ps1 |
+    Format-Table Service,Original -Auto
 
 
 Get-Content .\IMP1-63155-UnquotedServicePaths-ALL.txt | ForEach-Object {
