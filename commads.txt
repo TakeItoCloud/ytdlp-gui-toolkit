@@ -61,3 +61,22 @@ Import-Csv .\IMP1-Logs\65057-wave1-FILEPERM-REPORT.csv |
 
 Select-String -Path .\Repair-InsecureServiceFilePermission.ps1 -Pattern 'dangerBits','dangerMask' |
     Select-Object Pattern,LineNumber
+
+
+
+# ----- Issue B canary = 3 reachable machines (edit if needed) -----
+$targets = 'SBO-02C.ljc.local','SDataedo.ljc.local','SPRINT-01.ljc.local'
+$targets | Set-Content .\IMP1-63155-canary3.txt
+
+# 1) REPORT (read-only) - see exactly what will be quoted
+Invoke-Command -ComputerName $targets -FilePath .\Repair-UnquotedServicePath.ps1 |
+    Export-Csv .\IMP1-Logs\63155-canary-REPORT.csv -NoTypeInformation
+Import-Csv .\IMP1-Logs\63155-canary-REPORT.csv | Format-Table PSComputerName,Service,Original,Proposed -Auto
+
+# 2) APPLY - copies the script to each target and runs it with the confirm-prompt suppressed
+$sess = New-PSSession -ComputerName $targets
+foreach ($s in $sess) { Copy-Item .\Repair-UnquotedServicePath.ps1 -Destination 'C:\Windows\Temp\' -ToSession $s -Force }
+Invoke-Command -Session $sess { & 'C:\Windows\Temp\Repair-UnquotedServicePath.ps1' -Mode Apply -Confirm:$false } |
+    Export-Csv .\IMP1-Logs\63155-canary-APPLY.csv -NoTypeInformation
+Import-Csv .\IMP1-Logs\63155-canary-APPLY.csv | Format-Table PSComputerName,Service,Applied,Proposed -Auto
+Remove-PSSession $sess
