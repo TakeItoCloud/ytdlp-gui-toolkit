@@ -12,3 +12,7 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned -Force
 } | Format-List
 Write-Host "--- files present ---"
 Get-ChildItem -Name
+
+
+
+.\Add-Imp1MachinesToGroup.ps1 -Path .\IMP1-166555-WinVerifyTrust-WAVE1-first3.txt -GroupName grp-IMP1-WinVerifyTrust -WhatIf
