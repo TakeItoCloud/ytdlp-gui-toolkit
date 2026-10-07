@@ -80,7 +80,7 @@ begin {
                         $o.BackupFile = $bk
                         $inherit = if ($TargetType -eq 'Folder') { '(OI)(CI)(RX)' } else { '(RX)' }
                         & icacls "$Target" /remove:g "*$sid" /c /q | Out-Null
-                        & icacls "$Target" /grant   "*$sid:$inherit" /c /q | Out-Null
+                        & icacls "$Target" /grant   "*${sid}:$inherit" /c /q | Out-Null
                         if ($LASTEXITCODE -ne 0) { throw "icacls exit code $LASTEXITCODE" }
                         $o.Applied = $true
                         Write-Log "FIXED $TargetType=[$Target] principal=$sid -> removed write/modify, granted RX (backup $bk)" 'ACTION'
